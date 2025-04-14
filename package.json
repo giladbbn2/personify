@@ -19,7 +19,8 @@
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "swagger": "nest build && node dist/swagger",
-    "docs": "npx @compodoc/compodoc -p tsconfig.json -s"
+    "docs": "npx @compodoc/compodoc -p tsconfig.json -s",
+    "deploy": "deploy.bat"
   },
   "dependencies": {
     "@aws-sdk/client-bedrock-runtime": "^3.758.0",
