@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <style>
+    input::placeholder {
+      font-weight: bold;
+      opacity: 0.5;
+      text-align: right;
+    }
+
+    .messageRole {
+      color: red;
+      width:100%;
+      text-align: right;
+      direction: rtl;
+    }
+
+    .message {
+      color: black;
+      width:100%;
+      text-align: right;
+      direction: rtl;
+    }
+    </style>
+    <script src="personifyClient.js"></script>
+    <script src="personify.js"></script>
+    <script src="conversationComponent.js"></script>
+  </head>
+  <body style="margin:0">
+
+    <div id="home">
+      <input type="button" value="Start a new conversation" onclick="startNewConversation()" />
+      <br><br>
+      <input type="button" value="Continue a conversation" onclick="continueConversation()" />
+    </div>
+
+    <div id="conversation"></div>
+
+    <script>
+      const personify = new Personify();
+
+      function hideHome() {
+        document.getElementById('home').style.display = 'none';
+      }
+
+      function startNewConversation() {
+        hideHome();
+
+        const systemPrompt = prompt("Enter system prompt:");
+
+        if (systemPrompt === null || systemPrompt === undefined || systemPrompt === '') {
+          document.body.innerHTML = 'system prompt cannot be empty, refresh the page to start over';
+        } else {
+          personify.startConversation(systemPrompt).then((conversation) => {
+            const conversationComponent = new ConversationComponent({
+              containerElementId: 'conversation',
+              conversation: conversation,
+              isRenderOldChatMessages: false,
+            });
+          });
+        }
+      }
+
+      async function continueConversation() {
+        hideHome();
+
+        const conversationId = prompt("Enter conversation Id:");
+
+        const conversation = await personify.loadConversation(conversationId);
+
+        const conversationComponent = new ConversationComponent({
+          containerElementId: 'conversation',
+          conversation: conversation,
+          isRenderOldChatMessages: true,
+        });
+      }
+    </script>
+  </body>
+</html>
