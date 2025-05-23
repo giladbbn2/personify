@@ -27,7 +27,6 @@
     <script src="conversationComponent.js"></script>
   </head>
   <body style="margin:0">
-
     <div id="home" style="display:none">
       <input type="button" value="Start a new conversation" onclick="startNewConversation()" />
       <br><br>
@@ -78,6 +77,8 @@
 
         const conversation = await personify.loadConversation(conversationId);
 
+        localStorage.lastConversationId = conversation.conversationId;
+
         const conversationComponent = new ConversationComponent({
           containerElementId: 'conversation',
           conversation: conversation,
@@ -85,18 +86,81 @@
         });
       }
 
-      const systemPrompt = "אתה ילד בן 10 מישראל. קוראים לך אופק. אם שואלים אותך 'איך קוראים לך?' תענה 'אופק'. אם שואלים אותך 'מה שמך?', תענה 'אופק'. אם שואלים אותך 'מה השם שלך?', תענה 'אופק'. אתה גר בעיר הוד השרון. יש לך אחות קטנה ממך בת 7, אתם גרים עם אמא כי אבא עזב לפני שנה. אתה לא מבין הרבה דברים על העולם המבוגר, והדברים שאתה אומר הם פשוטים. תמיד תדבר בעברית. תמיד תכתוב מימין לשמאל. אל תוסיף נקודה בסוף משפט";
+      function getQueryParams() {
+        const params = new URLSearchParams(window.location.search);
+        const result = {};
 
-      const conversationId = localStorage.lastConversationId;
+        for (const [key, value] of params.entries()) {
+          if (
+            value !== undefined &&
+            value !== null &&
+            value !== ''
+          ) {
+            result[key] = value;
+          }
+        }
 
-      if (
-        conversationId !== null &&
-        conversationId !== undefined
-      ) {
-        continueConversation(conversationId);
-      } else {
-        startNewConversation(systemPrompt);
+        return result;
       }
+
+      async function index() {
+        // queryParams['op'] possible values:
+        const OP_CONTINUE = 'continueConversation'.toLowerCase();
+        const OP_NEW = 'startNewConversation'.toLowerCase();
+
+        const queryParams = getQueryParams();
+
+        let op = OP_CONTINUE;
+
+        if (queryParams['op'] !== undefined) {
+          op = String(queryParams['op']).toLowerCase();
+
+          if (
+            op !== OP_CONTINUE &&
+            op !== OP_NEW
+          ) {
+            op = OP_CONTINUE;
+          }
+        }
+
+        if (op === OP_CONTINUE) {
+          let conversationId;
+
+          if (queryParams['id'] !== undefined) {
+            conversationId = String(queryParams['id']);
+          } else {
+            conversationId = localStorage.lastConversationId;
+          }
+
+          if (
+            conversationId !== undefined &&
+            conversationId !== null &&
+            conversationId !== ''
+          ) {
+            try {
+              await continueConversation(conversationId);
+            } catch {
+              console.log('apparently conversation does not exist on the server, lets start a new one');
+              op = OP_NEW;
+            }
+          } else {
+            op = OP_NEW;
+          }
+        }
+
+        if (op === OP_NEW) {
+          let systemPrompt = "אתה ילד בן 10 מישראל. קוראים לך אופק. אם שואלים אותך 'איך קוראים לך?' תענה 'אופק'. אם שואלים אותך 'מה שמך?', תענה 'אופק'. אם שואלים אותך 'מה השם שלך?', תענה 'אופק'. אתה גר בעיר הוד השרון. יש לך אחות קטנה ממך בת 7, אתם גרים עם אמא כי אבא עזב לפני שנה. אתה לא מבין הרבה דברים על העולם המבוגר, והדברים שאתה אומר הם פשוטים. תמיד תדבר בעברית. תמיד תכתוב מימין לשמאל. אל תוסיף נקודה בסוף משפט";
+
+          if (queryParams['prompt'] !== undefined) {
+            systemPrompt = String(queryParams['prompt']);
+          }
+
+          startNewConversation(systemPrompt);
+        }
+      }
+
+      index();
+
     </script>
   </body>
 </html>
