@@ -28,7 +28,7 @@
   </head>
   <body style="margin:0">
 
-    <div id="home">
+    <div id="home" style="display:none">
       <input type="button" value="Start a new conversation" onclick="startNewConversation()" />
       <br><br>
       <input type="button" value="Continue a conversation" onclick="continueConversation()" />
@@ -43,15 +43,19 @@
         document.getElementById('home').style.display = 'none';
       }
 
-      function startNewConversation() {
+      function startNewConversation(systemPrompt) {
         hideHome();
 
-        const systemPrompt = prompt("Enter system prompt:");
+        if (systemPrompt === undefined) {
+          systemPrompt = prompt("Enter system prompt:");
+        }
 
         if (systemPrompt === null || systemPrompt === undefined || systemPrompt === '') {
           document.body.innerHTML = 'system prompt cannot be empty, refresh the page to start over';
         } else {
           personify.startConversation(systemPrompt).then((conversation) => {
+            localStorage.lastConversationId = conversation.conversationId;
+
             const conversationComponent = new ConversationComponent({
               containerElementId: 'conversation',
               conversation: conversation,
@@ -61,10 +65,16 @@
         }
       }
 
-      async function continueConversation() {
+      async function continueConversation(conversationId) {
         hideHome();
 
-        const conversationId = prompt("Enter conversation Id:");
+        if (conversationId === undefined) {
+          conversationId = prompt("Enter conversation Id:");
+        }
+
+        if (conversationId === undefined) {
+          throw new Error('conversationId is undefined');
+        }
 
         const conversation = await personify.loadConversation(conversationId);
 
@@ -73,6 +83,19 @@
           conversation: conversation,
           isRenderOldChatMessages: true,
         });
+      }
+
+      const systemPrompt = "אתה ילד בן 10 מישראל. קוראים לך אופק. אם שואלים אותך 'איך קוראים לך?' תענה 'אופק'. אם שואלים אותך 'מה שמך?', תענה 'אופק'. אם שואלים אותך 'מה השם שלך?', תענה 'אופק'. אתה גר בעיר הוד השרון. יש לך אחות קטנה ממך בת 7, אתם גרים עם אמא כי אבא עזב לפני שנה. אתה לא מבין הרבה דברים על העולם המבוגר, והדברים שאתה אומר הם פשוטים. תמיד תדבר בעברית. תמיד תכתוב מימין לשמאל. אל תוסיף נקודה בסוף משפט";
+
+      const conversationId = localStorage.lastConversationId;
+
+      if (
+        conversationId !== null &&
+        conversationId !== undefined
+      ) {
+        continueConversation(conversationId);
+      } else {
+        startNewConversation(systemPrompt);
       }
     </script>
   </body>
