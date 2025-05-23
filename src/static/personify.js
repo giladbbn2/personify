@@ -99,6 +99,16 @@ class Conversation {
     this.created = created;
   }
 
+  static blacklist = /[<>'"(){}[\];\\/%*!@#^&+=`~|]/g;
+
+  sanitizeMessage(message) {
+    if (message === undefined) {
+      return undefined;
+    }
+
+    return message.replace(this.blacklist, ' ');
+  }
+
   isConversationStarted() {
     if (this.conversationId === undefined) {
       return false;
@@ -132,6 +142,8 @@ class Conversation {
     if (message === undefined) {
       throw new Error('message is undefined');
     }
+
+    message = this.sanitizeMessage(message);
 
     this.validateConversationStarted();
 

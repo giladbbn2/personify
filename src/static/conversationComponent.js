@@ -53,9 +53,9 @@ class ConversationComponent {
     const messagesId = `messages_${this.componentId}`;
     const inputMessageId = `inputMessage_${this.componentId}`;
 
-    let html = `<div id='${messagesId}' style="width:100vw;height:80vh;background-color:rgb(191, 255, 255);"></div>`;
-    html += `<div style="width:100vw;height:20vh;min-height:35px;background-color:rgb(255, 195, 195);">`;
-    html += `<input type="text" id="${inputMessageId}" style="direction: rtl;text-align:right;width:100%;height:35px;border:0;box-sizing: border-box;" placeholder="כתבו הודעה ולחצו על אנטר" />`;
+    let html = `<div id='${messagesId}' style="width:100vw;height:calc(100vh - 35px);background-color:rgb(191, 255, 255);overflow:auto"></div>`;
+    html += `<div style="width:100vw;height:35px">`;
+    html += `<input type="text" id="${inputMessageId}" style="direction:rtl;text-align:right;background-color:rgb(255, 195, 195);width:100%;height:35px;border:0;box-sizing:border-box;" placeholder="כתבו הודעה ולחצו על אנטר" />`;
     html += `</div>`;
 
     this.container.innerHTML = html;
@@ -90,6 +90,7 @@ class ConversationComponent {
             that.conversation.generateAssistantMessage().then((message) => {
               that.addAssistantMessage(message);
               that.inputMessageEl.disabled = false;
+              that.inputMessageEl.focus();
             });
           }, 250);
         });
@@ -133,6 +134,8 @@ class ConversationComponent {
     }
 
     this.messagesEl.innerHTML += `<div class='messageRole'>${roleName}:<div><div class='message'>${message}</div>`;
+
+    this.messagesEl.scrollTop = this.messagesEl.scrollHeight;
   }
 
   addUserChatMessage(message) {
