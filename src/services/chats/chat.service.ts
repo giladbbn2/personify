@@ -1,18 +1,18 @@
 import { AwsBedrockProvider } from '@providers/aws-bedrock/aws-bedrock.provider';
 import { Injectable } from '@nestjs/common';
 import { Conversation } from '@interfaces/entities/conversation.entity';
-import { MockChatMessageRepository } from '@repositories/chat-messages/mock-chat-message.repository';
-import { MockConversationRepository } from '@repositories/conversations/mock-conversation.repository';
 import { v4 as uuid } from 'uuid';
 import { ChatRoles } from '@interfaces/enums/chat-roles.enum';
 import { ChatMessage } from '@interfaces/entities/chat-message.entity';
+import { ConversationRepositoryBase } from '@repositories/conversations/conversation-repository-base';
+import { ChatMessageRepositoryBase } from '@repositories/chat-messages/chat-message-repository-base';
 
 @Injectable()
 export class ChatService {
   constructor(
     private readonly AwsBedrockProvider: AwsBedrockProvider,
-    private readonly chatMessageRepository: MockChatMessageRepository,
-    private readonly conversationRepository: MockConversationRepository,
+    private readonly chatMessageRepository: ChatMessageRepositoryBase,
+    private readonly conversationRepository: ConversationRepositoryBase,
   ) {}
 
   async startConversation(newConversation: {

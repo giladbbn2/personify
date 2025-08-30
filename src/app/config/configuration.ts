@@ -21,6 +21,17 @@ export default () => {
     mongodbPort = parseInt(mongodbPortStr);
   }
 
+  const mongodbUseMockStr = process.env['MONGODB_USE_MOCK'];
+  let mongodbUseMock = false;
+  if (mongodbUseMockStr !== undefined) {
+    if (
+      mongodbUseMockStr === '1' ||
+      mongodbUseMockStr.toLowerCase() === 'true'
+    ) {
+      mongodbUseMock = true;
+    }
+  }
+
   return {
     appEnv,
     appPort: appPort,
@@ -29,6 +40,7 @@ export default () => {
       host: process.env['MONGODB_HOST'] ?? 'localhost',
       user: process.env['MONGODB_USER'] ?? 'root',
       port: mongodbPort,
+      useMock: mongodbUseMock,
     },
     aws: {
       accessKey: process.env['AWS_ACCESS_KEY'],

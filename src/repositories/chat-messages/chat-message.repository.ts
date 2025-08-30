@@ -1,17 +1,15 @@
 import { Injectable } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { ChatMessage } from '@interfaces/entities/chat-message.entity';
-import { IChatMessageRepository } from './chat-message-repository.interface';
 import { ChatEntry } from '@interfaces/entities/chat-entry.entity';
-import { BaseMongoDBRepository } from '../base-repositories/base-mongodb-repository';
+import { ChatMessageRepositoryBase } from './chat-message-repository-base';
+import { MongoDBConnectionWrapper } from '@repositories/connection-wrappers/mongodb-connection-wrapper';
 
 @Injectable()
-export class ChatMessageRepository
-  extends BaseMongoDBRepository
-  implements IChatMessageRepository
-{
-  constructor(protected readonly configService: ConfigService) {
-    super(configService);
+export class ChatMessageRepository extends ChatMessageRepositoryBase {
+  constructor(
+    protected readonly mongoDBConnectionWrapper: MongoDBConnectionWrapper,
+  ) {
+    super(mongoDBConnectionWrapper);
   }
 
   async getByChatMessageId(

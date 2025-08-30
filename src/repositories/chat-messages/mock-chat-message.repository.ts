@@ -1,16 +1,17 @@
 import { Injectable, NotImplementedException } from '@nestjs/common';
 import { ChatMessage } from '@interfaces/entities/chat-message.entity';
-import { IChatMessageRepository } from './chat-message-repository.interface';
 import { ChatEntry } from '@interfaces/entities/chat-entry.entity';
 import { v4 as uuid } from 'uuid';
+import { ChatMessageRepositoryBase } from './chat-message-repository-base';
 
 @Injectable()
-export class MockChatMessageRepository implements IChatMessageRepository {
+export class MockChatMessageRepository extends ChatMessageRepositoryBase {
   private readonly defaultConversationId = '';
   private readonly defaultMaxLastMessages = 100;
   private readonly chatEntryNodes = new Map<string, ChatEntryNode>();
 
   constructor() {
+    super();
     this.insertMockData();
   }
 

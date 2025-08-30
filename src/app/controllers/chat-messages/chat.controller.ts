@@ -17,20 +17,20 @@ import { MessageGeneratorProviderRequest } from './dto/message-generator-provide
 import { AwsBedrockProvider } from '@providers/aws-bedrock/aws-bedrock.provider';
 import { ChatEntry } from '@interfaces/entities/chat-entry.entity';
 import { ChatRoles } from '@interfaces/enums/chat-roles.enum';
-import { MockChatMessageRepository } from '@repositories/chat-messages/mock-chat-message.repository';
 import { StartConversationRequest } from './dto/start-conversation-request.dto';
 import { ConversationDto } from './dto/conversation.dto';
 import { AddChatMessageToConversationRequest } from './dto/add-chat-message-to-conversation-request.dto';
-import { MockConversationRepository } from '@repositories/conversations/mock-conversation.repository';
+import { ConversationRepositoryBase } from '@repositories/conversations/conversation-repository-base';
 import { Conversation } from '@interfaces/entities/conversation.entity';
+import { ChatMessageRepositoryBase } from '@repositories/chat-messages/chat-message-repository-base';
 
 @Controller()
 export class ChatController {
   private readonly logger = new Logger(ChatController.name);
 
   constructor(
-    private readonly chatMessageRepository: MockChatMessageRepository,
-    private readonly conversationRepository: MockConversationRepository,
+    private readonly chatMessageRepository: ChatMessageRepositoryBase,
+    private readonly conversationRepository: ConversationRepositoryBase,
     private readonly messageGeneratorProvider: AwsBedrockProvider,
     private readonly chatService: ChatService,
   ) {}

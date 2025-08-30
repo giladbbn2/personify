@@ -1,10 +1,14 @@
 import { Conversation } from '@interfaces/entities/conversation.entity';
 import { Injectable } from '@nestjs/common';
-import { IConversationRepository } from './conversation-repository.interface';
+import { ConversationRepositoryBase } from './conversation-repository-base';
 
 @Injectable()
-export class MockConversationRepository implements IConversationRepository {
+export class MockConversationRepository extends ConversationRepositoryBase {
   private readonly conversations = new Map<string, Conversation>();
+
+  constructor() {
+    super();
+  }
 
   async getByConversationId(
     conversationId: string,
