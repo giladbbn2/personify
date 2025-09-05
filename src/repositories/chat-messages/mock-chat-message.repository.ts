@@ -1,7 +1,7 @@
 import { Injectable, NotImplementedException } from '@nestjs/common';
 import { ChatMessage } from '@interfaces/entities/chat-message.entity';
-import { v4 as uuid } from 'uuid';
 import { ChatMessageRepositoryBase } from './chat-message-repository-base';
+import { nanoid } from 'nanoid';
 
 @Injectable()
 export class MockChatMessageRepository extends ChatMessageRepositoryBase {
@@ -23,7 +23,7 @@ export class MockChatMessageRepository extends ChatMessageRepositoryBase {
     for (let i = 0; i < 10; i++) {
       const chatMessage = new ChatMessage();
 
-      chatMessage.chatMessageId = uuid();
+      chatMessage.chatMessageId = nanoid();
       chatMessage.conversationId = conversationId;
       chatMessage.created = new Date();
       chatMessage.message = 'a';

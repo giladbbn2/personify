@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { Conversation } from '@interfaces/entities/conversation.entity';
-import { v4 as uuid } from 'uuid';
+import { nanoid } from 'nanoid';
 import { ChatRoles } from '@interfaces/enums/chat-roles.enum';
 import { ChatMessage } from '@interfaces/entities/chat-message.entity';
 import { ConversationRepositoryBase } from '@repositories/conversations/conversation-repository-base';
@@ -33,7 +33,7 @@ export class ChatService {
 
     const conversation = new Conversation();
 
-    conversation.conversationId = uuid();
+    conversation.conversationId = nanoid();
     conversation.systemPrompt = startConversationRequest.systemPrompt;
     conversation.created = new Date();
 
@@ -49,7 +49,7 @@ export class ChatService {
   }): ChatMessage {
     const chatMessage = new ChatMessage();
 
-    chatMessage.chatMessageId = uuid();
+    chatMessage.chatMessageId = nanoid();
     chatMessage.conversationId = createChatMessageRequest.conversationId;
     chatMessage.created = new Date();
     chatMessage.chatRole = createChatMessageRequest.chatRole;
