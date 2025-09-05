@@ -1,18 +1,18 @@
-import { ConfigService } from '@nestjs/config';
 import { Injectable, Logger } from '@nestjs/common';
 import {
   BedrockRuntimeClient,
   InvokeModelCommand,
 } from '@aws-sdk/client-bedrock-runtime';
-import { ChatEntry } from '@interfaces/entities/chat-entry.entity';
 import { ChatRoles } from '@interfaces/enums/chat-roles.enum';
 import {
   AnthropicClaudeResponse,
   AnthropicClaudeResponseContentItem,
 } from './interfaces/anthropic-claude-response.interface';
+import { IChatEntry } from '@interfaces/entities/chat-entry.interface';
+import { AwsBedrockProviderBase } from './aws-bedrock-provider-base';
 
 @Injectable()
-export class AwsBedrockProvider {
+export class AwsBedrockProvider implements AwsBedrockProviderBase {
   private readonly logger = new Logger(AwsBedrockProvider.name);
   private readonly awsAccessKey: string;
   private readonly awsSecretKey: string;
@@ -22,19 +22,11 @@ export class AwsBedrockProvider {
   private MAX_TOKENS = 1000;
   private MODEL_ID = 'anthropic.claude-instant-v1';
 
-  constructor(private readonly configService: ConfigService) {
-    const awsAccessKey = configService.get<string>('aws.accessKey');
-    const awsSecretKey = configService.get<string>('aws.secretKey');
-    const awsRegionName = configService.get<string>('aws.regionName');
-
-    if (
-      awsAccessKey === undefined ||
-      awsSecretKey === undefined ||
-      awsRegionName === undefined
-    ) {
-      throw new Error('aws bedrock - credentials are missing');
-    }
-
+  constructor(
+    awsAccessKey: string,
+    awsSecretKey: string,
+    awsRegionName: string,
+  ) {
     this.awsAccessKey = awsAccessKey;
     this.awsSecretKey = awsSecretKey;
     this.awsRegionName = awsRegionName;
@@ -52,7 +44,7 @@ export class AwsBedrockProvider {
     return client;
   }
 
-  private inflateChatEntries(chatEntries: ChatEntry[]): string {
+  private inflateChatMessages(chatEntries: IChatEntry[]): string {
     let messagesJson = '[';
 
     let delimiter = '';
@@ -70,7 +62,7 @@ export class AwsBedrockProvider {
 
   async generateMessageAnthropicClaude(generateMessageAnthropicClaudeRequest: {
     systemPrompt: string;
-    chatEntries: ChatEntry[];
+    chatEntries: IChatEntry[];
     anthropicVersion?: string;
     maxTokens?: number;
     modelId?: string;
@@ -79,17 +71,17 @@ export class AwsBedrockProvider {
       generateMessageAnthropicClaudeRequest.chatEntries === undefined ||
       generateMessageAnthropicClaudeRequest.chatEntries.length === 0
     ) {
-      throw new Error('chat entries are empty');
+      throw new Error('chat messages are empty');
     }
 
-    const lastChatEntry =
+    const lastChatMessage =
       generateMessageAnthropicClaudeRequest.chatEntries[
         generateMessageAnthropicClaudeRequest.chatEntries.length - 1
       ];
 
-    if (lastChatEntry.chatRole === ChatRoles.assistant) {
+    if (lastChatMessage.chatRole === ChatRoles.assistant) {
       throw new Error(
-        'last chat entry was for the assistant, cannot gnerate new message',
+        'last chat Message was for the assistant, cannot gnerate new message',
       );
     }
 
@@ -108,7 +100,7 @@ export class AwsBedrockProvider {
 
     const client = this.createAwsBedrockRuntimeClient();
 
-    const inflatedChatEntries = this.inflateChatEntries(
+    const inflatedChatEntries = this.inflateChatMessages(
       generateMessageAnthropicClaudeRequest.chatEntries,
     );
 

@@ -1,24 +1,41 @@
+import { IsInt, IsString, IsNotEmpty, IsDate } from 'class-validator';
+import { ChatMessage } from '@interfaces/entities/chat-message.entity';
 import { ApiProperty } from '@nestjs/swagger';
-import { IsInt, IsString, IsNotEmpty } from 'class-validator';
-import { ChatEntry } from '@interfaces/entities/chat-entry.entity';
 
 export class ChatMessageDto {
-  constructor(chatEntry?: ChatEntry) {
-    if (chatEntry !== undefined) {
-      this.chatRoleId = chatEntry.chatRole as number;
-      this.message = chatEntry.message;
+  constructor(chatMessage?: ChatMessage) {
+    if (chatMessage !== undefined) {
+      this.chatMessageId = chatMessage.chatMessageId;
+      this.conversationId = chatMessage.conversationId;
+      this.created = chatMessage.created;
+      this.chatRoleId = chatMessage.chatRole as number;
+      this.message = chatMessage.message;
     }
   }
 
-  @ApiProperty({
-    required: true,
-  })
+  @ApiProperty()
+  @IsString()
+  chatMessageId: string;
+
+  @ApiProperty()
+  @IsString()
+  conversationId: string;
+
+  @ApiProperty()
+  @IsDate()
+  created: Date;
+
+  // @ApiProperty({
+  //   required: true,
+  // })
+  @ApiProperty()
   @IsInt()
   chatRoleId: number;
 
-  @ApiProperty({
-    required: true,
-  })
+  // @ApiProperty({
+  //   required: true,
+  // })
+  @ApiProperty()
   @IsString()
   @IsNotEmpty()
   message: string;

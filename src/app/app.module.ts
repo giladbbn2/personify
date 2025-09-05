@@ -3,7 +3,6 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import configuration from '../app/config/configuration';
 import { ChatService } from '@services/chats/chat.service';
 import { ChatController } from '@app/controllers/chat-messages/chat.controller';
-import { AwsBedrockProvider } from '@providers/aws-bedrock/aws-bedrock.provider';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { ConversationRepositoryBase } from '@repositories/conversations/conversation-repository-base';
 import { ConversationRepository } from '@repositories/conversations/conversation.repository';
@@ -12,7 +11,9 @@ import { ChatMessageRepositoryBase } from '@repositories/chat-messages/chat-mess
 import { ChatMessageRepository } from '@repositories/chat-messages/chat-message.repository';
 import { MockChatMessageRepository } from '@repositories/chat-messages/mock-chat-message.repository';
 import { join } from 'path';
-import { MongoDBConnectionWrapper } from '@repositories/connection-wrappers/mongodb-connection-wrapper';
+import { MongoDBConnectionWrapper } from '@repositories/connections/mongodb-connection-wrapper';
+import { AwsBedrockProviderBase } from '@providers/aws-bedrock/aws-bedrock-provider-base';
+import { AwsBedrockProvider } from '@providers/aws-bedrock/aws-bedrock.provider';
 
 @Module({
   imports: [
@@ -27,8 +28,6 @@ import { MongoDBConnectionWrapper } from '@repositories/connection-wrappers/mong
   ],
   controllers: [ChatController],
   providers: [
-    ChatService,
-    AwsBedrockProvider,
     ChatService,
     {
       provide: MongoDBConnectionWrapper,
@@ -83,6 +82,29 @@ import { MongoDBConnectionWrapper } from '@repositories/connection-wrappers/mong
           return new MockConversationRepository();
         }
         return new ConversationRepository(mongoDBConnectionWrapper);
+      },
+    },
+    {
+      provide: AwsBedrockProviderBase,
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => {
+        const awsAccessKey = configService.get<string>('aws.accessKey');
+        const awsSecretKey = configService.get<string>('aws.secretKey');
+        const awsRegionName = configService.get<string>('aws.regionName');
+
+        if (
+          awsAccessKey === undefined ||
+          awsSecretKey === undefined ||
+          awsRegionName === undefined
+        ) {
+          throw new Error('aws bedrock - credentials are missing');
+        }
+
+        return new AwsBedrockProvider(
+          awsAccessKey,
+          awsSecretKey,
+          awsRegionName,
+        );
       },
     },
   ],

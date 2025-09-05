@@ -14,8 +14,6 @@ import {
 import { ChatMessageDto } from './dto/chat-message.dto';
 import { ChatMessage } from '@interfaces/entities/chat-message.entity';
 import { MessageGeneratorProviderRequest } from './dto/message-generator-provider-request';
-import { AwsBedrockProvider } from '@providers/aws-bedrock/aws-bedrock.provider';
-import { ChatEntry } from '@interfaces/entities/chat-entry.entity';
 import { ChatRoles } from '@interfaces/enums/chat-roles.enum';
 import { StartConversationRequest } from './dto/start-conversation-request.dto';
 import { ConversationDto } from './dto/conversation.dto';
@@ -23,6 +21,8 @@ import { AddChatMessageToConversationRequest } from './dto/add-chat-message-to-c
 import { ConversationRepositoryBase } from '@repositories/conversations/conversation-repository-base';
 import { Conversation } from '@interfaces/entities/conversation.entity';
 import { ChatMessageRepositoryBase } from '@repositories/chat-messages/chat-message-repository-base';
+import { IChatEntry } from '@interfaces/entities/chat-entry.interface';
+import { AwsBedrockProviderBase } from '@providers/aws-bedrock/aws-bedrock-provider-base';
 
 @Controller()
 export class ChatController {
@@ -31,7 +31,7 @@ export class ChatController {
   constructor(
     private readonly chatMessageRepository: ChatMessageRepositoryBase,
     private readonly conversationRepository: ConversationRepositoryBase,
-    private readonly messageGeneratorProvider: AwsBedrockProvider,
+    private readonly messageGeneratorProvider: AwsBedrockProviderBase,
     private readonly chatService: ChatService,
   ) {}
 
@@ -59,21 +59,25 @@ export class ChatController {
   async getChatMessagesByConversationId(
     @Param('conversationId') conversationId: string,
   ): Promise<ChatMessageDto[]> {
-    let chatEntries: ChatEntry[];
+    let chatMessages: ChatMessage[];
 
     try {
-      chatEntries = await this.chatMessageRepository.getChatEntries({
+      chatMessages = await this.chatMessageRepository.getChatMessages({
         conversationId: conversationId,
       });
     } catch (error) {
       throw new HttpException((error as Error).message, 500);
     }
 
-    if (chatEntries === undefined) {
+    if (chatMessages === undefined) {
       throw new NotFoundException('chat messages not found');
     }
 
-    return chatEntries.map((chatEntry) => new ChatMessageDto(chatEntry));
+    const chatMessageDtos = chatMessages.map(
+      (chatMessage) => new ChatMessageDto(chatMessage),
+    );
+
+    return chatMessageDtos;
   }
 
   @Post('admin/message-generator-provider')
@@ -81,21 +85,20 @@ export class ChatController {
     @Body() messageGeneratorProviderRequest: MessageGeneratorProviderRequest,
   ): Promise<string> {
     try {
-      const chatEntries: ChatEntry[] = [];
+      const chatEntries: IChatEntry[] = [];
 
       if (messageGeneratorProviderRequest.chatEntries !== undefined) {
         messageGeneratorProviderRequest.chatEntries.forEach((chatEntryDto) => {
-          const chatEntry = new ChatEntry();
-
-          if (chatEntryDto.chatRoleId in ChatRoles) {
-            chatEntry.chatRole = chatEntryDto.chatRoleId;
-          } else {
+          if (!(chatEntryDto.chatRoleId in ChatRoles)) {
             throw new Error(
               `chat role Id ${chatEntryDto.chatRoleId} undefined`,
             );
           }
 
-          chatEntry.message = chatEntryDto.message;
+          const chatEntry: IChatEntry = {
+            chatRole: chatEntryDto.chatRoleId,
+            message: chatEntryDto.message,
+          };
 
           chatEntries.push(chatEntry);
         });

@@ -1,6 +1,5 @@
 import { Injectable, NotImplementedException } from '@nestjs/common';
 import { ChatMessage } from '@interfaces/entities/chat-message.entity';
-import { ChatEntry } from '@interfaces/entities/chat-entry.entity';
 import { v4 as uuid } from 'uuid';
 import { ChatMessageRepositoryBase } from './chat-message-repository-base';
 
@@ -8,7 +7,8 @@ import { ChatMessageRepositoryBase } from './chat-message-repository-base';
 export class MockChatMessageRepository extends ChatMessageRepositoryBase {
   private readonly defaultConversationId = '';
   private readonly defaultMaxLastMessages = 100;
-  private readonly chatEntryNodes = new Map<string, ChatEntryNode>();
+  // conversationId => last chat message node
+  private readonly chatMessageNodes = new Map<string, ChatMessageNode>();
 
   constructor() {
     super();
@@ -45,44 +45,44 @@ export class MockChatMessageRepository extends ChatMessageRepositoryBase {
     throw new NotImplementedException();
   }
 
-  async getChatEntries(getChatEntriesRequest: {
+  async getChatMessages(getChatMessagesRequest: {
     conversationId: string;
     maxLastMessages?: number;
-  }): Promise<ChatEntry[]> {
-    if (getChatEntriesRequest.conversationId === undefined) {
-      getChatEntriesRequest.conversationId = this.defaultConversationId;
+  }): Promise<ChatMessage[]> {
+    if (getChatMessagesRequest.conversationId === undefined) {
+      getChatMessagesRequest.conversationId = this.defaultConversationId;
     }
 
-    let lastChatEntryNode = this.chatEntryNodes.get(
-      getChatEntriesRequest.conversationId,
+    let lastChatMessageNode = this.chatMessageNodes.get(
+      getChatMessagesRequest.conversationId,
     );
 
-    if (lastChatEntryNode === undefined) {
+    if (lastChatMessageNode === undefined) {
       return Promise.resolve([]);
     }
 
-    if (getChatEntriesRequest.maxLastMessages === undefined) {
-      getChatEntriesRequest.maxLastMessages = this.defaultMaxLastMessages;
+    if (getChatMessagesRequest.maxLastMessages === undefined) {
+      getChatMessagesRequest.maxLastMessages = this.defaultMaxLastMessages;
     }
 
-    const chatEntries: ChatEntry[] = [];
+    const chatMessages: ChatMessage[] = [];
 
     let arrLength = 0;
 
     while (true) {
       if (
-        lastChatEntryNode === undefined ||
-        arrLength >= getChatEntriesRequest.maxLastMessages
+        lastChatMessageNode === undefined ||
+        arrLength >= getChatMessagesRequest.maxLastMessages
       ) {
         break;
       }
 
-      arrLength = chatEntries.unshift(lastChatEntryNode.chatEntry);
+      arrLength = chatMessages.unshift(lastChatMessageNode.chatMessage);
 
-      lastChatEntryNode = lastChatEntryNode.previous;
+      lastChatMessageNode = lastChatMessageNode.previous;
     }
 
-    return Promise.resolve(chatEntries);
+    return Promise.resolve(chatMessages);
   }
 
   async insert(chatMessage: ChatMessage): Promise<void> {
@@ -97,26 +97,26 @@ export class MockChatMessageRepository extends ChatMessageRepositoryBase {
       conversationId = chatMessage.conversationId;
     }
 
-    const chatEntryNode = new ChatEntryNode();
-    chatEntryNode.chatEntry = chatMessage as ChatEntry;
+    const chatMessageNode = new ChatMessageNode();
+    chatMessageNode.chatMessage = chatMessage;
 
-    const lastChatEntryNode = this.chatEntryNodes.get(conversationId);
+    const lastChatMessageNode = this.chatMessageNodes.get(conversationId);
 
-    if (lastChatEntryNode === undefined) {
-      this.chatEntryNodes.set(conversationId, chatEntryNode);
+    if (lastChatMessageNode === undefined) {
+      this.chatMessageNodes.set(conversationId, chatMessageNode);
     } else {
-      lastChatEntryNode.next = chatEntryNode;
-      chatEntryNode.previous = lastChatEntryNode;
+      lastChatMessageNode.next = chatMessageNode;
+      chatMessageNode.previous = lastChatMessageNode;
 
-      this.chatEntryNodes.set(conversationId, chatEntryNode);
+      this.chatMessageNodes.set(conversationId, chatMessageNode);
     }
 
     return Promise.resolve();
   }
 }
 
-class ChatEntryNode {
-  chatEntry: ChatEntry;
-  next: ChatEntryNode;
-  previous: ChatEntryNode;
+class ChatMessageNode {
+  chatMessage: ChatMessage;
+  next: ChatMessageNode;
+  previous: ChatMessageNode;
 }

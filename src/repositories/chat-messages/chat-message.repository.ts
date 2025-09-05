@@ -1,8 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ChatMessage } from '@interfaces/entities/chat-message.entity';
-import { ChatEntry } from '@interfaces/entities/chat-entry.entity';
 import { ChatMessageRepositoryBase } from './chat-message-repository-base';
-import { MongoDBConnectionWrapper } from '@repositories/connection-wrappers/mongodb-connection-wrapper';
+import { MongoDBConnectionWrapper } from '@repositories/connections/mongodb-connection-wrapper';
 
 @Injectable()
 export class ChatMessageRepository extends ChatMessageRepositoryBase {
@@ -26,11 +25,11 @@ export class ChatMessageRepository extends ChatMessageRepositoryBase {
     return chatMessage;
   }
 
-  async getChatEntries(getChatEntriesRequest: {
+  async getChatMessages(getChatMessagesRequest: {
     conversationId: string;
     maxLastMessages?: number;
-  }): Promise<ChatEntry[]> {
-    console.log(getChatEntriesRequest);
+  }): Promise<ChatMessage[]> {
+    console.log(getChatMessagesRequest);
     return Promise.resolve([]);
   }
 

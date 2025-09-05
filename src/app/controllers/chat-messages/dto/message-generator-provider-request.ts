@@ -1,7 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsNotEmpty, ValidateNested } from 'class-validator';
+import { IsString, IsNotEmpty, ValidateNested, IsInt } from 'class-validator';
 import { Type } from 'class-transformer';
-import { ChatMessageDto } from './chat-message.dto';
 
 export class MessageGeneratorProviderRequest {
   @ApiProperty({
@@ -11,13 +10,13 @@ export class MessageGeneratorProviderRequest {
   @IsNotEmpty()
   systemPrompt: string;
 
-  // we need custom validator here
+  // TODO: add custom validator here
   @ApiProperty({
     required: true,
   })
   @ValidateNested({ each: true })
-  @Type(() => ChatMessageDto)
-  chatEntries: ChatMessageDto[];
+  @Type(() => ChatEntryDto)
+  chatEntries: ChatEntryDto[];
 
   @ApiProperty()
   //@IsString()
@@ -32,4 +31,19 @@ export class MessageGeneratorProviderRequest {
   //@IsString()
   //@IsNotEmpty()
   modelId?: string;
+}
+
+export class ChatEntryDto {
+  @ApiProperty({
+    required: true,
+  })
+  @IsInt()
+  chatRoleId: number;
+
+  @ApiProperty({
+    required: true,
+  })
+  @IsString()
+  @IsNotEmpty()
+  message: string;
 }

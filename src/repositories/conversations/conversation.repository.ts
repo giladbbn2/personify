@@ -1,13 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { ConversationRepositoryBase } from './conversation-repository-base';
 import { Conversation } from '@interfaces/entities/conversation.entity';
-import { MongoDBConnectionWrapper } from '@repositories/connection-wrappers/mongodb-connection-wrapper';
-import {
-  ConversationDocToEntity,
-  ConversationDocument,
-  ConversationEntityToDoc,
-} from './conversation-mapper';
+import { MongoDBConnectionWrapper } from '@repositories/connections/mongodb-connection-wrapper';
 import { Collection } from 'mongodb';
+import { ConversationDocument } from './documents/conversation-document';
 
 @Injectable()
 export class ConversationRepository extends ConversationRepositoryBase {
@@ -40,7 +36,7 @@ export class ConversationRepository extends ConversationRepositoryBase {
       return undefined;
     }
 
-    const conversation = ConversationDocToEntity(doc);
+    const conversation = this.ConversationDocumentToEntity(doc);
 
     return conversation;
   }
@@ -50,7 +46,7 @@ export class ConversationRepository extends ConversationRepositoryBase {
       throw new Error('conversation is undefined');
     }
 
-    const doc = ConversationEntityToDoc(conversation);
+    const doc = this.ConversationEntityToDocument(conversation);
 
     const collection = await this.collection();
 
