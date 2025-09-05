@@ -125,7 +125,7 @@ export class ChatController {
     @Body() startConversationRequest: StartConversationRequest,
   ): Promise<ConversationDto> {
     try {
-      const conversation = await this.chatService.startConversation({
+      const conversation = await this.chatService.createConversation({
         systemPrompt: startConversationRequest.systemPrompt,
       });
 
@@ -191,74 +191,4 @@ export class ChatController {
       throw new HttpException((error as Error).message, 500);
     }
   }
-
-  /*
-  @Get('internal/v1/fueling-device/:fuelingDeviceId')
-  async getFuelingDeviceById(
-    @Param('fuelingDeviceId', ParseIntPipe) fuelingDeviceId: number,
-  ): Promise<FuelingDeviceDto> {
-    let fuelingDevice: FuelingDevice | null;
-
-    try {
-      fuelingDevice = await this.fuelingDeviceRepository.get(fuelingDeviceId);
-    } catch (error) {
-      throw new HttpException((error as Error).message, 500);
-    }
-
-    if (fuelingDevice === null) {
-      throw new NotFoundException('fueling device not found');
-    }
-
-    const fuelingDeviceDto = new FuelingDeviceDto();
-
-    fuelingDeviceDto.FuelingDeviceId = fuelingDevice.FuelingDeviceId;
-
-    fuelingDeviceDto.FuelingDeviceRequestId =
-      fuelingDevice.FuelingDeviceRequestId;
-
-    fuelingDeviceDto.FuelingDeviceStatusId = fuelingDevice.FuelingDeviceStatus;
-
-    return fuelingDeviceDto;
-  }
-
-  @Post('internal/v1/fueling-device/provider1')
-  @HttpCode(204)
-  async createProvider1(
-    @Body() createProvider1Request: CreateProvider1Request,
-  ) {
-    try {
-      await this.fuelingDeviceRepository.get(createProvider1Request.Metadatum2);
-    } catch (error) {
-      throw new HttpException((error as Error).message, 500);
-    }
-  }
-
-  @Get('internal/v1/fueling-device/:fuelingDeviceId/status')
-  async getFuelingDeviceStatusById(
-    @Param('fuelingDeviceId', ParseIntPipe) fuelingDeviceId: number,
-  ): Promise<number> {
-    let fuelingDevice: FuelingDevice | null;
-
-    try {
-      fuelingDevice = await this.fuelingDeviceRepository.get(fuelingDeviceId);
-    } catch (error) {
-      throw new HttpException((error as Error).message, 500);
-    }
-
-    if (fuelingDevice === null) {
-      throw new NotFoundException('fueling device not found');
-    }
-
-    try {
-      const fuelingDeviceStatus =
-        await this.fuelingDeviceService.getDeviceStatusFromProvider(
-          fuelingDevice.LicensePlate,
-        );
-
-      return fuelingDeviceStatus as number;
-    } catch (error) {
-      throw new HttpException((error as Error).message, 500);
-    }
-  }
-  */
 }

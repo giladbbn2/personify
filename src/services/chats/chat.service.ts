@@ -9,37 +9,62 @@ import { AwsBedrockProviderBase } from '@providers/aws-bedrock/aws-bedrock-provi
 
 @Injectable()
 export class ChatService {
-  constructor(
-    private readonly AwsBedrockProvider: AwsBedrockProviderBase,
-    private readonly chatMessageRepository: ChatMessageRepositoryBase,
-    private readonly conversationRepository: ConversationRepositoryBase,
-  ) {}
+  private readonly awsBedrockProvider: AwsBedrockProviderBase;
+  private readonly chatMessageRepository: ChatMessageRepositoryBase;
+  private readonly conversationRepository: ConversationRepositoryBase;
+  private readonly fetchMaxLastMessages: number;
 
-  async startConversation(startConversationRequest: {
+  constructor(
+    awsBedrockProvider: AwsBedrockProviderBase,
+    chatMessageRepository: ChatMessageRepositoryBase,
+    conversationRepository: ConversationRepositoryBase,
+    fetchMaxLastMessages: number,
+  ) {
+    this.awsBedrockProvider = awsBedrockProvider;
+    this.chatMessageRepository = chatMessageRepository;
+    this.conversationRepository = conversationRepository;
+    this.fetchMaxLastMessages = fetchMaxLastMessages;
+  }
+
+  async createConversation(createConversationRequest: {
     systemPrompt: string;
+    conversationId?: string;
   }): Promise<Conversation> {
-    if (startConversationRequest === undefined) {
-      throw new Error('startConversationRequest is undefined');
+    if (createConversationRequest === undefined) {
+      throw new Error('createConversationRequest is undefined');
     }
 
     if (
-      startConversationRequest.systemPrompt === undefined ||
-      startConversationRequest.systemPrompt.length === 0
+      createConversationRequest.systemPrompt === undefined ||
+      createConversationRequest.systemPrompt.length === 0
     ) {
       throw new Error(
-        'startConversationRequest.systemPrompt is undefined or empty',
+        'createConversationRequest.systemPrompt is undefined or empty',
       );
     }
 
     const conversation = new Conversation();
 
-    conversation.conversationId = nanoid();
-    conversation.systemPrompt = startConversationRequest.systemPrompt;
+    if (!createConversationRequest.conversationId) {
+      conversation.conversationId = nanoid();
+    } else {
+      conversation.conversationId = createConversationRequest.conversationId;
+    }
+
+    conversation.systemPrompt = createConversationRequest.systemPrompt;
     conversation.created = new Date();
 
     await this.conversationRepository.insert(conversation);
 
     return conversation;
+  }
+
+  async getConversationByConversationId(
+    conversationId: string,
+  ): Promise<Conversation | undefined> {
+    return await this.conversationRepository.getByConversationId(
+      conversationId,
+    );
   }
 
   private createChatMessage(createChatMessageRequest: {
@@ -158,12 +183,13 @@ export class ChatService {
 
     const chatMessages = await this.chatMessageRepository.getChatMessages({
       conversationId: generateChatMessageRequest.conversationId,
+      maxLastMessages: this.fetchMaxLastMessages,
     });
 
     // check if chat messages exist?
 
     const generatedMessage =
-      await this.AwsBedrockProvider.generateMessageAnthropicClaude({
+      await this.awsBedrockProvider.generateMessageAnthropicClaude({
         systemPrompt: conversation.systemPrompt,
         chatEntries: chatMessages,
       });

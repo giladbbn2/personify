@@ -9,12 +9,20 @@ export class MongoDBConnectionWrapper {
   constructor(initializer?: {
     mongoHost: string;
     mongoPort: number;
-    mongoDbName?: string;
+    mongoDbName?: string | undefined;
+    mongoUser?: string | undefined;
+    mongoPass?: string | undefined;
   }) {
     if (initializer !== undefined) {
-      this.client = new MongoClient(
-        `mongodb://${initializer.mongoHost}:${initializer.mongoPort}`,
-      );
+      if (!initializer.mongoUser || !initializer.mongoPass) {
+        this.client = new MongoClient(
+          `mongodb://${initializer.mongoHost}:${initializer.mongoPort}`,
+        );
+      } else {
+        this.client = new MongoClient(
+          `mongodb://${initializer.mongoUser}:${initializer.mongoPass}@${initializer.mongoHost}:${initializer.mongoPort}`,
+        );
+      }
 
       if (initializer.mongoDbName !== undefined) {
         this.mongoDbName = initializer.mongoDbName;

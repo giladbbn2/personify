@@ -33,6 +33,7 @@
     "axios": "^1.8.1",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.1",
+    "lru-cache": "^11.2.1",
     "mongodb": "^6.19.0",
     "nanoid": "^5.1.5",
     "reflect-metadata": "^0.2.2",

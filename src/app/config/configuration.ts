@@ -32,20 +32,40 @@ export default () => {
     }
   }
 
+  const messageGenerationUseMockStr = process.env['MSG_GEN_USE_MOCK'];
+  let messageGenerationUseMock = false;
+  if (messageGenerationUseMockStr !== undefined) {
+    if (
+      messageGenerationUseMockStr === '1' ||
+      messageGenerationUseMockStr.toLowerCase() === 'true'
+    ) {
+      messageGenerationUseMock = true;
+    }
+  }
+
+  // TODO: remove me
+  messageGenerationUseMock = true;
+
   return {
     appEnv,
     appPort: appPort,
     appName: 'Personify',
     mongodb: {
       host: process.env['MONGODB_HOST'] ?? 'localhost',
-      user: process.env['MONGODB_USER'] ?? 'root',
       port: mongodbPort,
+      user: process.env['MONGODB_USER'],
+      pass: process.env['MONGODB_PASS'],
+      dbName: process.env['MONGODB_DBNAME'] ?? 'personify',
       useMock: mongodbUseMock,
     },
     aws: {
       accessKey: process.env['AWS_ACCESS_KEY'],
       secretKey: process.env['AWS_SECRET_KEY'],
       regionName: process.env['AWS_REGION_NAME'],
+    },
+    maxFetchLastMessages: process.env['MAX_FETCH_LAST_MSGS'] ?? 50,
+    messageGenerator: {
+      useMock: messageGenerationUseMock,
     },
   };
 };

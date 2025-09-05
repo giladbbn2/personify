@@ -29,14 +29,14 @@ export class ConversationRepository extends ConversationRepositoryBase {
     const collection = await this.collection();
 
     const doc = await collection.findOne<ConversationDocument>({
-      id: conversationId,
+      _id: conversationId,
     });
 
     if (doc === null) {
       return undefined;
     }
 
-    const conversation = this.ConversationDocumentToEntity(doc);
+    const conversation = this.conversationDocumentToEntity(doc);
 
     return conversation;
   }
@@ -46,7 +46,7 @@ export class ConversationRepository extends ConversationRepositoryBase {
       throw new Error('conversation is undefined');
     }
 
-    const doc = this.ConversationEntityToDocument(conversation);
+    const doc = this.conversationEntityToDocument(conversation);
 
     const collection = await this.collection();
 

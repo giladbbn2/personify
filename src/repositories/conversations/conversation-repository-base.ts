@@ -17,7 +17,7 @@ export abstract class ConversationRepositoryBase {
 
   abstract insert(conversation: Conversation): Promise<void>;
 
-  ConversationEntityToDocument(entity: Conversation): ConversationDocument {
+  conversationEntityToDocument(entity: Conversation): ConversationDocument {
     const doc = new ConversationDocument();
     doc._id = entity.conversationId;
     doc.systemPrompt = entity.systemPrompt;
@@ -25,10 +25,10 @@ export abstract class ConversationRepositoryBase {
     return doc;
   }
 
-  ConversationDocumentToEntity(doc: ConversationDocument): Conversation {
+  conversationDocumentToEntity(doc: ConversationDocument): Conversation {
     const entity = new Conversation();
     entity.conversationId = doc._id;
-    entity.systemPrompt = doc.systemPrompt;
+    entity.systemPrompt = doc.systemPrompt !== null ? doc.systemPrompt : '';
     entity.created = doc.created;
     return entity;
   }
