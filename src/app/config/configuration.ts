@@ -43,9 +43,6 @@ export default () => {
     }
   }
 
-  // TODO: remove me
-  messageGenerationUseMock = true;
-
   return {
     appEnv,
     appPort: appPort,
