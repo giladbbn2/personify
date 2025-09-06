@@ -30,10 +30,13 @@ export class CachedConversationRepository extends ConversationRepositoryBase {
     conversationId: string,
   ): Promise<Conversation | undefined> {
     if (!conversationId) {
-      throw new Error('conversationId is undefined');
+      throw new Error('conversationId undefined');
     }
 
-    let conversation = this.conversationCache.get(conversationId);
+    const conversationIdCacheKey =
+      this.getConversationIdCacheKey(conversationId);
+
+    let conversation = this.conversationCache.get(conversationIdCacheKey);
 
     if (!conversation) {
       conversation =
@@ -43,10 +46,50 @@ export class CachedConversationRepository extends ConversationRepositoryBase {
         return undefined;
       }
 
-      this.conversationCache.set(conversationId, conversation);
+      this.conversationCache.set(conversationIdCacheKey, conversation);
+
+      if (conversation.fbPsId) {
+        const fbPsIdCacheKey = this.getFbPsIdCacheKey(conversation.fbPsId);
+        this.conversationCache.set(fbPsIdCacheKey, conversation);
+      }
     }
 
     return conversation;
+  }
+
+  async getByFbPsId(fbPsId: string): Promise<Conversation | undefined> {
+    if (!fbPsId) {
+      throw new Error('fbPsId undefined');
+    }
+
+    const fbPsIdCacheKey = this.getFbPsIdCacheKey(fbPsId);
+
+    let conversation = this.conversationCache.get(fbPsIdCacheKey);
+
+    if (!conversation) {
+      conversation = await this.conversationRepository.getByFbPsId(fbPsId);
+
+      if (!conversation) {
+        return undefined;
+      }
+
+      this.conversationCache.set(fbPsIdCacheKey, conversation);
+
+      const conversationIdCacheKey = this.getConversationIdCacheKey(
+        conversation.conversationId,
+      );
+      this.conversationCache.set(conversationIdCacheKey, conversation);
+    }
+
+    return conversation;
+  }
+
+  private getConversationIdCacheKey(conversationId: string) {
+    return `conversationIdKey123|${conversationId}`;
+  }
+
+  private getFbPsIdCacheKey(fbPsId: string) {
+    return `fbPsIdKey123|${fbPsId}`;
   }
 
   async insert(conversation: Conversation): Promise<void> {

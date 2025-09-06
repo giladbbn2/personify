@@ -48,19 +48,19 @@ export class FacebookController {
         const fbPageId = entry.id;
 
         for (const event of entry.messaging) {
-          const fbPsid = event.sender.id;
+          const fbPsId = event.sender.id;
 
           if (event.message?.text) {
             const userMessage = event.message.text;
-            this.logger.log(`Message from ${fbPsid}: ${userMessage}`);
+            this.logger.log(`Message from ${fbPsId}: ${userMessage}`);
 
             await this.facebookChatService.handleMessageSentFromFacebook(
               fbPageId,
-              fbPsid,
+              fbPsId,
               userMessage,
             );
 
-            //await this.sendMessageToFacebook(fbPsid, `Echo: ${userMessage}`);
+            //await this.sendMessageToFacebook(fbPsId, `Echo: ${userMessage}`);
           }
         }
       }

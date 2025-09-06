@@ -26,33 +26,28 @@ export class ChatService {
     this.fetchMaxLastMessages = fetchMaxLastMessages;
   }
 
-  async createConversation(createConversationRequest: {
-    systemPrompt: string;
-    conversationId?: string;
+  async createConversation(createConversationRequest?: {
+    systemPrompt?: string;
+    fbPsId?: string;
+    fbPageId?: string;
   }): Promise<Conversation> {
     if (createConversationRequest === undefined) {
-      throw new Error('createConversationRequest is undefined');
+      createConversationRequest = {};
     }
 
-    if (
-      createConversationRequest.systemPrompt === undefined ||
-      createConversationRequest.systemPrompt.length === 0
-    ) {
+    if (!createConversationRequest.systemPrompt) {
+      // fetch latest system prompt from repository
       throw new Error(
-        'createConversationRequest.systemPrompt is undefined or empty',
+        'createConversationRequest.systemPrompt undefined or empty',
       );
     }
 
     const conversation = new Conversation();
-
-    if (!createConversationRequest.conversationId) {
-      conversation.conversationId = nanoid();
-    } else {
-      conversation.conversationId = createConversationRequest.conversationId;
-    }
-
+    conversation.conversationId = nanoid();
     conversation.systemPrompt = createConversationRequest.systemPrompt;
     conversation.created = new Date();
+    conversation.fbPsId = createConversationRequest.fbPsId;
+    conversation.fbPageId = createConversationRequest.fbPageId;
 
     await this.conversationRepository.insert(conversation);
 
@@ -65,6 +60,12 @@ export class ChatService {
     return await this.conversationRepository.getByConversationId(
       conversationId,
     );
+  }
+
+  async getConversationByFbPsId(
+    fbPsId: string,
+  ): Promise<Conversation | undefined> {
+    return await this.conversationRepository.getByFbPsId(fbPsId);
   }
 
   private createChatMessage(createChatMessageRequest: {

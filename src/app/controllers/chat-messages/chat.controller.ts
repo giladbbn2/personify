@@ -127,6 +127,8 @@ export class ChatController {
     try {
       const conversation = await this.chatService.createConversation({
         systemPrompt: startConversationRequest.systemPrompt,
+        fbPsId: startConversationRequest.fbPsId,
+        fbPageId: startConversationRequest.fbPageId,
       });
 
       return new ConversationDto(conversation);

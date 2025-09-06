@@ -1,7 +1,7 @@
 import { IChatEntry } from '@interfaces/entities/chat-entry.interface';
 import { AwsBedrockProviderBase } from './aws-bedrock-provider-base';
 
-export class MockAwsBedrockProvider implements AwsBedrockProviderBase {
+export class MockAwsBedrockProvider extends AwsBedrockProviderBase {
   generateMessageAnthropicClaude(generateMessageAnthropicClaudeRequest: {
     systemPrompt: string;
     chatEntries: IChatEntry[];

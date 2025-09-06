@@ -4,7 +4,7 @@ export default () => {
   let appEnv = process.env['NODE_ENV'];
 
   if (appEnv === undefined || !appEnvs.includes(appEnv)) {
-    appEnv = 'development';
+    appEnv = 'production';
   }
 
   const appPortStr = process.env['APP_PORT'];
@@ -32,7 +32,7 @@ export default () => {
     }
   }
 
-  const messageGenerationUseMockStr = process.env['MSG_GEN_USE_MOCK'];
+  const messageGenerationUseMockStr = process.env['MSG_GEN_PROVIDER_USE_MOCK'];
   let messageGenerationUseMock = false;
   if (messageGenerationUseMockStr !== undefined) {
     if (
@@ -40,6 +40,17 @@ export default () => {
       messageGenerationUseMockStr.toLowerCase() === 'true'
     ) {
       messageGenerationUseMock = true;
+    }
+  }
+
+  const facebookProviderUseMockStr = process.env['FB_PROVIDER_USE_MOCK'];
+  let facebookProviderUseMock = false;
+  if (facebookProviderUseMockStr !== undefined) {
+    if (
+      facebookProviderUseMockStr === '1' ||
+      facebookProviderUseMockStr.toLowerCase() === 'true'
+    ) {
+      facebookProviderUseMock = true;
     }
   }
 
@@ -61,8 +72,11 @@ export default () => {
       regionName: process.env['AWS_REGION_NAME'],
     },
     maxFetchLastMessages: process.env['MAX_FETCH_LAST_MSGS'] ?? 50,
-    messageGenerator: {
+    messageGeneratorProvider: {
       useMock: messageGenerationUseMock,
+    },
+    facebookProvider: {
+      useMock: facebookProviderUseMock,
     },
   };
 };

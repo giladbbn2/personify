@@ -1,42 +1,24 @@
-FROM node:latest AS deps
+FROM node:20-slim AS deps
 WORKDIR /app
-
-# Copy only the files needed to install dependencies
 COPY package.json package-lock.json* ./
-
-# Install dependencies with the preferred package manager
-RUN npm ci
-
+RUN --mount=type=cache,target=/root/.npm npm ci
 COPY /src/static ./static
 
-FROM node:latest AS builder
+FROM node:20-slim AS builder
 WORKDIR /app
-
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/static ./static
-
-# Copy the rest of the files
 COPY . .
-
-# Run build with the preferred package manager
 RUN npm run build
 
+FROM node:20-slim AS runner
+WORKDIR /app
 ENV NODE_ENV=production
-
-# Re-run install only for production dependencies
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/static ./dist/static
+COPY package*.json ./
 RUN npm ci --only=production && npm cache clean --force
 
-FROM node:latest AS runner
-EXPOSE 3000
-WORKDIR /app
-
-# Copy the bundled code from the builder stage
-COPY --from=builder --chown=node:node /app/dist ./dist
-COPY --from=builder --chown=node:node /app/node_modules ./node_modules
-COPY --from=builder --chown=node:node /app/static ./dist/static
-
-# Use the node user from the image
 USER node
-
-# Start the server
+EXPOSE 3000
 CMD ["node", "dist/main.js"]

@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import configuration from '../app/config/configuration';
+import configuration from '@app/config/configuration';
 import { ChatService } from '@services/chats/chat.service';
 import { ChatController } from '@app/controllers/chat-messages/chat.controller';
 import { ServeStaticModule } from '@nestjs/serve-static';
@@ -18,6 +18,14 @@ import { MockAwsBedrockProvider } from '@providers/aws-bedrock/mock-aws-bedrock.
 import { FacebookController } from './controllers/facebook/facebook.controller';
 import { FacebookChatService } from '@services/facebook-chat/facebook-chat.service';
 import { FacebookProvider } from '@providers/facebook/facebook.provider';
+import { FacebookProviderBase } from '@providers/facebook/facebook-provider-base';
+import { FacebookVerifyTokenRepositoryBase } from '@repositories/facebook-verify-tokens/facebook-verify-token-repository-base';
+import { CachedFacebookVerifyTokenRepository } from '@repositories/facebook-verify-tokens/cached-facebook-verify-token.repository';
+import { FacebookPageAccessTokenRepositoryBase } from '@repositories/facebook-page-access-tokens/facebook-page-access-token-repository-base';
+import { CachedFacebookPageAccessTokenRepository } from '@repositories/facebook-page-access-tokens/cached-facebook-page-access-token.repository';
+import { MockFacebookProvider } from '@providers/facebook/mock-facebook.provider';
+import { MockFacebookPageAccessTokenRepository } from '@repositories/facebook-page-access-tokens/mock-facebook-page-access-token.repository';
+import { MockFacebookVerifyTokenRepository } from '@repositories/facebook-verify-tokens/mock-facebook-verify-token.repository';
 
 @Module({
   imports: [
@@ -25,6 +33,7 @@ import { FacebookProvider } from '@providers/facebook/facebook.provider';
       isGlobal: true,
       cache: true,
       load: [configuration],
+      envFilePath: '.env',
     }),
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'static'),
@@ -99,6 +108,42 @@ import { FacebookProvider } from '@providers/facebook/facebook.provider';
         return new CachedConversationRepository(mongoDBConnectionWrapper);
       },
     },
+    {
+      provide: FacebookVerifyTokenRepositoryBase,
+      inject: [ConfigService, MongoDBConnectionWrapper],
+      useFactory: (
+        configService: ConfigService,
+        mongoDBConnectionWrapper: MongoDBConnectionWrapper,
+      ) => {
+        const useMocks = configService.get<boolean>('mongodb.useMock');
+
+        if (useMocks) {
+          return new MockFacebookVerifyTokenRepository();
+        }
+
+        return new CachedFacebookVerifyTokenRepository(
+          mongoDBConnectionWrapper,
+        );
+      },
+    },
+    {
+      provide: FacebookPageAccessTokenRepositoryBase,
+      inject: [ConfigService, MongoDBConnectionWrapper],
+      useFactory: (
+        configService: ConfigService,
+        mongoDBConnectionWrapper: MongoDBConnectionWrapper,
+      ) => {
+        const useMocks = configService.get<boolean>('mongodb.useMock');
+
+        if (useMocks) {
+          return new MockFacebookPageAccessTokenRepository();
+        }
+
+        return new CachedFacebookPageAccessTokenRepository(
+          mongoDBConnectionWrapper,
+        );
+      },
+    },
 
     // providers
 
@@ -106,7 +151,9 @@ import { FacebookProvider } from '@providers/facebook/facebook.provider';
       provide: AwsBedrockProviderBase,
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => {
-        const useMocks = configService.get<boolean>('messageGenerator.useMock');
+        const useMocks = configService.get<boolean>(
+          'messageGeneratorProvider.useMock',
+        );
 
         if (useMocks) {
           return new MockAwsBedrockProvider();
@@ -131,7 +178,19 @@ import { FacebookProvider } from '@providers/facebook/facebook.provider';
         );
       },
     },
-    FacebookProvider,
+    {
+      provide: FacebookProviderBase,
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => {
+        const useMocks = configService.get<boolean>('facebookProvider.useMock');
+
+        if (useMocks) {
+          return new MockFacebookProvider();
+        }
+
+        return new FacebookProvider();
+      },
+    },
 
     // services
 

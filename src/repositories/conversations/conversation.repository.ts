@@ -23,13 +23,33 @@ export class ConversationRepository extends ConversationRepositoryBase {
     conversationId: string,
   ): Promise<Conversation | undefined> {
     if (!conversationId) {
-      throw new Error('conversationId is undefined');
+      throw new Error('conversationId undefined');
     }
 
     const collection = await this.collection();
 
     const doc = await collection.findOne<ConversationDocument>({
       _id: conversationId,
+    });
+
+    if (doc === null) {
+      return undefined;
+    }
+
+    const conversation = this.conversationDocumentToEntity(doc);
+
+    return conversation;
+  }
+
+  async getByFbPsId(fbPsId: string): Promise<Conversation | undefined> {
+    if (!fbPsId) {
+      throw new Error('fbPsId undefined');
+    }
+
+    const collection = await this.collection();
+
+    const doc = await collection.findOne<ConversationDocument>({
+      fbPsId,
     });
 
     if (doc === null) {

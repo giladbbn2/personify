@@ -8,6 +8,8 @@ export class ConversationDto {
       this.conversationId = conversation.conversationId;
       this.systemPrompt = conversation.systemPrompt;
       this.created = conversation.created;
+      this.fbPageId = conversation.fbPageId;
+      this.fbPsId = conversation.fbPsId;
     }
   }
 
@@ -24,4 +26,10 @@ export class ConversationDto {
 
   @IsDate()
   created: Date;
+
+  @IsString()
+  fbPageId: string | undefined;
+
+  @IsString()
+  fbPsId: string | undefined;
 }

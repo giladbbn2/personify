@@ -2,14 +2,11 @@ import { ChatMessage } from '@interfaces/entities/chat-message.entity';
 import { MongoDBConnectionWrapper } from '@repositories/connections/mongodb-connection-wrapper';
 import { ChatMessageDocument } from './documents/chat-message-document';
 import { ChatRoles } from '@interfaces/enums/chat-roles.enum';
+import { RepositoryBase } from '@repositories/repository-base';
 
-export abstract class ChatMessageRepositoryBase {
-  protected readonly mongoDBConnectionWrapper:
-    | MongoDBConnectionWrapper
-    | undefined;
-
+export abstract class ChatMessageRepositoryBase extends RepositoryBase {
   constructor(mongoDBConnectionWrapper?: MongoDBConnectionWrapper) {
-    this.mongoDBConnectionWrapper = mongoDBConnectionWrapper;
+    super(mongoDBConnectionWrapper);
   }
 
   abstract getByChatMessageId(

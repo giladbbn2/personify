@@ -27,6 +27,18 @@
             "request": "launch",
             "command": "npm run deploy",
             "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "node",
+            "request": "attach",
+            "name": "Debug Personify",
+            "port": 9229,
+            "address": "localhost",
+            "restart": true,
+            "sourceMaps": true,
+            "outFiles": [
+                "${workspaceFolder}/dist/**/*.js"
+            ]
         }
     ]
 }

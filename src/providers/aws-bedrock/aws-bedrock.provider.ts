@@ -12,7 +12,7 @@ import { IChatEntry } from '@interfaces/entities/chat-entry.interface';
 import { AwsBedrockProviderBase } from './aws-bedrock-provider-base';
 
 @Injectable()
-export class AwsBedrockProvider implements AwsBedrockProviderBase {
+export class AwsBedrockProvider extends AwsBedrockProviderBase {
   private readonly logger = new Logger(AwsBedrockProvider.name);
   private readonly awsAccessKey: string;
   private readonly awsSecretKey: string;
@@ -27,6 +27,7 @@ export class AwsBedrockProvider implements AwsBedrockProviderBase {
     awsSecretKey: string,
     awsRegionName: string,
   ) {
+    super();
     this.awsAccessKey = awsAccessKey;
     this.awsSecretKey = awsSecretKey;
     this.awsRegionName = awsRegionName;

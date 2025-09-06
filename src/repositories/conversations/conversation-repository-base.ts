@@ -1,19 +1,18 @@
 import { Conversation } from '@interfaces/entities/conversation.entity';
 import { MongoDBConnectionWrapper } from '@repositories/connections/mongodb-connection-wrapper';
 import { ConversationDocument } from './documents/conversation-document';
+import { RepositoryBase } from '@repositories/repository-base';
 
-export abstract class ConversationRepositoryBase {
-  protected readonly mongoDBConnectionWrapper:
-    | MongoDBConnectionWrapper
-    | undefined;
-
+export abstract class ConversationRepositoryBase extends RepositoryBase {
   constructor(mongoDBConnectionWrapper?: MongoDBConnectionWrapper) {
-    this.mongoDBConnectionWrapper = mongoDBConnectionWrapper;
+    super(mongoDBConnectionWrapper);
   }
 
   abstract getByConversationId(
     conversationId: string,
   ): Promise<Conversation | undefined>;
+
+  abstract getByFbPsId(fbPsId: string): Promise<Conversation | undefined>;
 
   abstract insert(conversation: Conversation): Promise<void>;
 
@@ -22,6 +21,8 @@ export abstract class ConversationRepositoryBase {
     doc._id = entity.conversationId;
     doc.systemPrompt = entity.systemPrompt;
     doc.created = entity.created;
+    doc.fbPsId = entity.fbPsId !== undefined ? entity.fbPsId : null;
+    doc.fbPageId = entity.fbPageId !== undefined ? entity.fbPageId : null;
     return doc;
   }
 
@@ -30,6 +31,8 @@ export abstract class ConversationRepositoryBase {
     entity.conversationId = doc._id;
     entity.systemPrompt = doc.systemPrompt !== null ? doc.systemPrompt : '';
     entity.created = doc.created;
+    entity.fbPsId = doc.fbPsId !== null ? doc.fbPsId : undefined;
+    entity.fbPageId = doc.fbPageId !== null ? doc.fbPageId : undefined;
     return entity;
   }
 }

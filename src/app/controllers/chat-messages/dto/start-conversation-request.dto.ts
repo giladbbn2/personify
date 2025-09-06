@@ -1,11 +1,16 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsString } from 'class-validator';
+import { IsString } from 'class-validator';
 
 export class StartConversationRequest {
-  @ApiProperty({
-    required: true,
-  })
+  // @ApiProperty({
+  //   required: true,
+  // })
+  //@IsNotEmpty()
   @IsString()
-  @IsNotEmpty()
-  systemPrompt: string;
+  systemPrompt: string | undefined = undefined;
+
+  //@IsString()
+  fbPsId?: string | undefined = undefined;
+
+  //@IsString()
+  fbPageId?: string | undefined = undefined;
 }
