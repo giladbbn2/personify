@@ -11,8 +11,8 @@ services:
   personify:
     # build: .  # production (Dockerfile)
     build:  # development
-      context: .
-      dockerfile: Dockerfile.dev
+      context: ./personify-server
+      dockerfile: ../Dockerfile.dev
     container_name: personify
     restart: always
     ports:
