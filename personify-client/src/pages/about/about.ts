@@ -1,7 +1,6 @@
-import { BaseHTMLElement } from "@base/base-html-element";
 import { aboutTemplate } from "./about.template";
 
-export class About extends BaseHTMLElement {
+export class About extends HTMLElement {
   constructor() {
     super();
 

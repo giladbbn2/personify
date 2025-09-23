@@ -1,7 +1,6 @@
-import { BaseHTMLElement } from "@base/base-html-element";
 import { notFoundPageTemplate } from "./not-found.template";
 
-export class NotFoundPage extends BaseHTMLElement {
+export class NotFoundPage extends HTMLElement {
   constructor() {
     super();
 

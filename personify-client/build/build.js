@@ -73,7 +73,6 @@ async function run() {
     barrelPath,
   );
 
-
   try {
     await build({
       entryPoints: [
@@ -88,13 +87,13 @@ async function run() {
       minify: true,
       //entryNames: "[name]",
     })
+
+    await fs.unlink(barrelPath);
+
+    await fs.cp(`${srcFolder}/app/static`, `${distFolder}`, {recursive: true})
   } catch (err) {
     console.log(err);
   }
-
-  await fs.copyFile(`${srcFolder}/app/index.html`, `${distFolder}/index.html`)
-
-  await fs.unlink(barrelPath);
 }
 
 run();

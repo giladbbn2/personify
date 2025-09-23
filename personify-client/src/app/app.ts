@@ -1,29 +1,43 @@
-import { BaseHTMLElement } from "@base/base-html-element";
 import { AppState, ReadOnlyState } from "@base/state/app-state";
 import { IPageRoute } from "@base/router/page-route.interface";
 import { Router } from "@base/router/router";
 import { AppRoutes } from "./app-routes";
 
-export class App extends BaseHTMLElement {
+export class App extends HTMLElement {
   private readonly mainHTMLElement: HTMLElement;
 
   constructor() {
     super();
 
+    AppRoutes.initialize();
+
+    // fetch state from LocalStorage
+    AppState.initialize(
+      {},
+      (state: ReadOnlyState) => {
+        // save state to LocalStorage
+      },
+    );
+
+    const initPageRoute = Router.initialize((pageRoute: IPageRoute) => {
+      this.renderPage(pageRoute);
+    });
+
     const shadow = this.attachShadow({ mode: 'open' });
 
+    const initPageRouteStr = JSON.stringify(initPageRoute);
+
     shadow.innerHTML = `
-      <header-comp></header-comp>
+      <header-comp data-init-page-route='${initPageRouteStr}'></header-comp>
       <main id='main'></main>
     `;
 
     this.mainHTMLElement = shadow.getElementById('main')!;
 
-    this.bootstrap();
+    this.renderPage(initPageRoute)
   }
 
   private renderPage(pageRoute: IPageRoute): void {
-    console.log(pageRoute);
     if (!pageRoute) {
       throw new Error('pageRoute undefined');
     }
@@ -38,31 +52,16 @@ export class App extends BaseHTMLElement {
       return;
     }
 
-    const pageEl = document.createElement(`${customElementTagName}`) as BaseHTMLElement;
+    let paramsStr = '';
 
-    pageEl.params = {...pageRoute.params};
+    if (
+      pageRoute.params &&
+      Object.entries(pageRoute.params).length > 0
+    ) {
+      paramsStr = JSON.stringify({...pageRoute.params});
+    }
 
-    this.mainHTMLElement.innerHTML = '';
-
-    this.mainHTMLElement.appendChild(pageEl);
-  }
-
-  private bootstrap() {
-    AppRoutes.initialize();
-
-    // fetch state from LocalStorage
-    AppState.initialize(
-      {},
-      (state: ReadOnlyState) => {
-        // save state to LocalStorage
-      },
-    );
-
-    const pageRoute = Router.initialize((pageRoute: IPageRoute) => {
-      this.renderPage(pageRoute);
-    });
-
-    this.renderPage(pageRoute)
+    this.mainHTMLElement.innerHTML = `<${customElementTagName} data-params='${paramsStr}'></${customElementTagName}>`;
   }
 }
 
@@ -72,21 +71,3 @@ customElements.define("app-root", App);
 // async function loadComponent(name: string) {
 //   await import(`./components/${name}.js`);
 // }
-
-// Initialize state and service
-//const state = AppState.getInstance();
-//const service = new TeamService();
-
-// Fetch team data
-//service.fetchTeam().then(team => state.team = team);
-
-//const appContainer = document.getElementById("app")!;
-
-// SPA router
-
-
-
-
-// Initial route from URL hash
-//const initialRoute = location.hash.replace("#", "") || "home";
-//renderRoute(initialRoute, false);

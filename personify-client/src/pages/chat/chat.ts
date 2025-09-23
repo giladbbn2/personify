@@ -1,7 +1,6 @@
-import { BaseHTMLElement } from "@base/base-html-element";
 import { chatPageTemplate } from "./chat.template";
 
-export class ChatPage extends BaseHTMLElement {
+export class ChatPage extends HTMLElement {
   constructor() {
     super();
 
