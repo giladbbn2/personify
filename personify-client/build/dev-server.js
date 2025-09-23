@@ -4,58 +4,50 @@ import path from "path";
 import url from "url";
 
 const __dirname = path.resolve();
-const publicDir = path.join(__dirname, "dist"); // folder with your static files
+const PORT = 3000;
+const PUBLIC_DIR = path.join(__dirname, "dist"); // folder with your index.html, js, css, media
 
 const server = http.createServer((req, res) => {
-  // Parse request URL
   const parsedUrl = url.parse(req.url);
-  let pathname = `${publicDir}${parsedUrl.pathname}`;
+  let pathname = path.join(PUBLIC_DIR, parsedUrl.pathname);
 
-  // Default to index.html if directory
-  if (fs.existsSync(pathname) && fs.statSync(pathname).isDirectory()) {
-    pathname = path.join(pathname, "index.html");
-  }
-
-  // File extension and MIME type mapping
-  const ext = path.extname(pathname).toLowerCase();
-  const mimeTypes = {
-    ".html": "text/html",
-    ".js": "text/javascript",
-    ".css": "text/css",
-    ".json": "application/json",
-    ".png": "image/png",
-    ".jpg": "image/jpeg",
-    ".jpeg": "image/jpeg",
-    ".gif": "image/gif",
-    ".svg": "image/svg+xml",
-    ".ico": "image/x-icon",
-    ".wav": "audio/wav",
-    ".mp4": "video/mp4",
-    ".woff": "font/woff",
-    ".ttf": "font/ttf",
-    ".eot": "application/vnd.ms-fontobject",
-    ".otf": "font/otf",
-    ".wasm": "application/wasm"
-  };
-
-  const contentType = mimeTypes[ext] || "application/octet-stream";
-
-  // Serve file
-  fs.readFile(pathname, (err, data) => {
-    if (err) {
-      res.statusCode = 404;
-      res.setHeader("Content-Type", "text/plain");
-      res.end("404 Not Found");
+  fs.stat(pathname, (err, stats) => {
+    if (!err && stats.isFile()) {
+      // ✅ serve file if it exists
+      serveFile(pathname, res);
+    } else if (!err && stats.isDirectory()) {
+      // ✅ serve index.html if they hit a folder
+      serveFile(path.join(pathname, "index.html"), res);
     } else {
-      res.statusCode = 200;
-      res.setHeader("Content-Type", contentType);
-      res.end(data);
+      // ❌ file not found → fallback to SPA entry (index.html)
+      serveFile(path.join(PUBLIC_DIR, "index.html"), res);
     }
   });
 });
 
-// Start server
-const PORT = 3000;
+function serveFile(filePath, res) {
+  fs.readFile(filePath, (err, data) => {
+    if (err) {
+      res.statusCode = 500;
+      res.end("500 Internal Server Error");
+    } else {
+      const ext = path.extname(filePath).toLowerCase();
+      const mimeTypes = {
+        ".html": "text/html",
+        ".js": "application/javascript",
+        ".css": "text/css",
+        ".png": "image/png",
+        ".jpg": "image/jpeg",
+        ".gif": "image/gif",
+        ".svg": "image/svg+xml",
+        ".json": "application/json",
+      };
+      res.setHeader("Content-Type", mimeTypes[ext] || "application/octet-stream");
+      res.end(data);
+    }
+  });
+}
+
 server.listen(PORT, () => {
   console.log(`✅ Server running at http://localhost:${PORT}`);
 });

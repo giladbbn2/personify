@@ -25,14 +25,27 @@ async function collectFiles(dir, ext = ".ts") {
   return results;
 }
 
-async function generateBarrel(dirs, outputFile) {
+async function generateBarrel(
+  entrypoints,
+  outputFile
+) {
   let imports = [];
 
-  for (const dir of dirs) {
-    const files = await collectFiles(dir);
-    for (const file of files) {
+  for (const entry of entrypoints) {
+    const stat = await fs.stat(entry);
+
+    if (stat.isDirectory()) {
+      // collect all .ts files from folder
+      const files = await collectFiles(entry);
+      for (const file of files) {
+        const relativePath =
+          "./" + path.relative(path.dirname(outputFile), file).replace(/\\/g, "/");
+        imports.push(`import "${relativePath}";`);
+      }
+    } else if (entry.endsWith(".ts")) {
+      // single file entrypoint
       const relativePath =
-        "./" + path.relative(path.dirname(outputFile), file).replace(/\\/g, "/");
+        "./" + path.relative(path.dirname(outputFile), entry).replace(/\\/g, "/");
       imports.push(`import "${relativePath}";`);
     }
   }
@@ -49,34 +62,31 @@ async function run() {
       fsSync.mkdirSync(distFolder, { recursive: true });
   }
 
-  const componentsBarrelPath = `${distFolder}/components.ts`;
+  const barrelPath = `${distFolder}/build-barrel.ts`;
 
   await generateBarrel(
-    [`${srcFolder}/components`],
-    componentsBarrelPath,
+    [
+      `${srcFolder}/app/app.ts`,
+      `${srcFolder}/components`,
+      `${srcFolder}/pages`
+    ],
+    barrelPath,
   );
 
-  const pagesBarrelPath = `${distFolder}/pages.ts`;
-
-  await generateBarrel(
-    [`${srcFolder}/pages`],
-    pagesBarrelPath,
-  );
 
   try {
     await build({
       entryPoints: [
-        `${srcFolder}/app/app.ts`,
-        componentsBarrelPath,
-        pagesBarrelPath,
+        barrelPath,
       ],
       bundle: true,
       //outfile: "../dist/bundle.js",
-      outdir: distFolder,
+      outfile: `${distFolder}/bundle.js`,
+      //outdir: distFolder,
       format: "esm",
       sourcemap: true,
       minify: true,
-      entryNames: "[name]",
+      //entryNames: "[name]",
     })
   } catch (err) {
     console.log(err);
@@ -84,8 +94,7 @@ async function run() {
 
   await fs.copyFile(`${srcFolder}/app/index.html`, `${distFolder}/index.html`)
 
-  await fs.unlink(componentsBarrelPath);
-  await fs.unlink(pagesBarrelPath);
+  await fs.unlink(barrelPath);
 }
 
 run();

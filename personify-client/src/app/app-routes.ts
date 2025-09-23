@@ -1,31 +1,27 @@
-import { IPageRoute } from '@base/router/page-route.interface';
-
 export class AppRoutes {
-  private static routes = new Map<string, IPageRoute>();
+  // route -> page html custom element tag name
+  private static routes = new Map<string, string>();
 
   static initialize(): void {
-    AppRoutes.routes.set('/', {
-      pageName: 'chat-page'
-    });
+    AppRoutes.routes.set('/', 'chat-page');
+    AppRoutes.routes.set('/chat', 'chat-page');
+    AppRoutes.routes.set('/about', 'about-page');
 
-    AppRoutes.routes.set('/chat', {
-      pageName: 'chat-page'
-    });
-
-    AppRoutes.routes.set('/about', {
-      pageName: 'about-page'
-    });
-
-    AppRoutes.routes.set('/*', {
-      pageName: 'not-found'
-    });
+    // fallback
+    AppRoutes.routes.set('/*', 'not-found');
   }
 
-  static get(route: string): IPageRoute | undefined {
-    return AppRoutes.routes.get(route);
+  static get(route: string): string | undefined {
+    let customElementTagName = AppRoutes.routes.get(route);
+
+    if (customElementTagName) {
+      return customElementTagName;
+    }
+
+    return AppRoutes.getFallback();
   }
 
-  static getFallback(): IPageRoute | undefined {
+  private static getFallback(): string | undefined {
     return AppRoutes.routes.get('/*');
   }
 }

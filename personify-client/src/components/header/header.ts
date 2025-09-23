@@ -16,17 +16,15 @@ export class Header extends BaseHTMLElement {
       link.addEventListener("click", e => {
         e.preventDefault();
 
-        const pageName = link.getAttribute("data-page-name");
+        const route = link.getAttribute("data-route");
 
-        console.log(pageName);
-
-        if (pageName) {
+        if (route) {
           links.forEach(l => l.classList.remove("active"));
 
           link.classList.add("active");
 
           Router.renderPage({
-            pageName,
+            route,
           });
         }
       });

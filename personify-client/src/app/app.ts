@@ -23,46 +23,24 @@ export class App extends BaseHTMLElement {
   }
 
   private renderPage(pageRoute: IPageRoute): void {
+    console.log(pageRoute);
     if (!pageRoute) {
       throw new Error('pageRoute undefined');
     }
 
-    let route: string;
-
-    if (pageRoute.pageName) {
-      route = `/${pageRoute.pageName}`;
-    } else if (pageRoute.route) {
-      route = pageRoute.route;
-    } else {
+    if (!pageRoute.route) {
       throw new Error('pageRoute undefined');
     }
 
-    let declaredPageRoute = AppRoutes.get(route);
+    let customElementTagName = AppRoutes.get(pageRoute.route);
 
-    if (!declaredPageRoute) {
-      declaredPageRoute = AppRoutes.getFallback();
-    }
-
-    if (!declaredPageRoute || !declaredPageRoute.pageName) {
+    if (!customElementTagName) {
       return;
     }
 
-    if (!declaredPageRoute.params) {
-      declaredPageRoute.params = {};
-    }
+    const pageEl = document.createElement(`${customElementTagName}`) as BaseHTMLElement;
 
-    if (pageRoute.params) {
-      declaredPageRoute.params = {
-        ...declaredPageRoute.params,
-        ...pageRoute.params,
-      };
-    }
-
-    console.log(declaredPageRoute.pageName);
-
-    const pageEl = document.createElement(`${declaredPageRoute.pageName}`) as BaseHTMLElement;
-
-    pageEl.params = declaredPageRoute.params;
+    pageEl.params = {...pageRoute.params};
 
     this.mainHTMLElement.innerHTML = '';
 

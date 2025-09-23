@@ -18,23 +18,15 @@ export class Router {
     }
 
     window.addEventListener('popstate', (event: PopStateEvent) => {
-      //const route = event.state?.route || 'chat';
-      //this.setRoute(route)
-      //renderRoute(route, false);
+      const url: string | undefined = event.state?.url;
 
-      console.log(event);
-
-      const url = event.state?.route;
-
-      if (url) {
-        if (Router.appRenderPage) {
-          const pageRoute = Router.urlToPageRoute(url);
-          Router.appRenderPage(pageRoute);
-        }
+      if (url && Router.appRenderPage) {
+        const pageRoute = Router.urlToPageRoute(url);
+        Router.appRenderPage(pageRoute);
       }
     });
 
-    return Router.urlToPageRoute();
+    return Router.urlToPageRoute(window.location.href);
   }
 
   static renderPage(pageRoute: IPageRoute): void {
@@ -46,32 +38,26 @@ export class Router {
     }
   }
 
-  private static pageRouteToUrl(pageRoute: IPageRoute): string {
-    let route: string = '';
+  private static pageRouteToUrl(pageRoute: IPageRoute): string | undefined {
+    if (pageRoute.route) {
+      let route = `${window.location.origin}${pageRoute.route}`;
 
-    if (pageRoute.pageName) {
-      route = `${window.location.origin}/${pageRoute.pageName}`;
-    } else if (pageRoute.route) {
-      route = `${window.location.origin}${pageRoute.route}`;
-    }
+      if (pageRoute.params) {
+        let delimiter = '?';
 
-    if (pageRoute.params) {
-      let delimiter = '?';
-
-      for (const key in pageRoute.params) {
-        route += `${delimiter}${key}=${pageRoute.params[key]}`;
-        delimiter = '&';
+        for (const key in pageRoute.params) {
+          route += `${delimiter}${key}=${pageRoute.params[key]}`;
+          delimiter = '&';
+        }
       }
+
+      return route;
     }
 
-    return route;
+    return undefined;
   }
 
-  private static urlToPageRoute(url?: string): IPageRoute {
-    if (!url) {
-      url = window.location.href;
-    }
-
+  private static urlToPageRoute(url: string): IPageRoute {
     const parsed = new URL(url);
 
     const params: Record<string, string> = {};
@@ -79,15 +65,9 @@ export class Router {
       params[key] = value;
     });
 
-    let pageName: string | undefined = undefined;
     let route = parsed.pathname;
 
-    if (parsed.pathname !== '/') {
-      pageName = parsed.pathname.substring(1);
-    }
-
     return {
-      pageName,
       route,
       params,
     }
